@@ -38,7 +38,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.47.0_Linux-64bit.tar.gz
+          wget https://github.com/aquasecurity/trivy/releases/tag/v0.59.1/trivy_0.59.1_Linux-64bit.tar.gz
           tar -xvzf trivy_0.47.0_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
 
