@@ -30,7 +30,7 @@ jobs:
         run: npm install
 
       - name: Run tests (skipped)
-        run: echo "Skipping tests since none are defined"
+        run: echo "Skipping tests cause none are defined"
   security_scan:
     runs-on: ubuntu-latest
     needs: test
