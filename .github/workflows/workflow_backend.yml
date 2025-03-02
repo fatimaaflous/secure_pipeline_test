@@ -6,9 +6,9 @@ on:
     branches:
       - main
 permissions:
-  contents: read  # Permet l'accès au dépôt pour le checkout
-  packages: write # Permet l'accès à GitHub Container Registry (GHCR)
-  id-token: write # Nécessaire pour Cosign
+  contents: read
+  packages: write
+  id-token: write
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -89,7 +89,8 @@ jobs:
           curl -LO https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
           chmod +x cosign-linux-amd64
           sudo mv cosign-linux-amd64 /usr/local/bin/cosign
-
+      - name: Load Cosign Private Key
+        run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
       - name: Sign the Docker image with Cosign
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
