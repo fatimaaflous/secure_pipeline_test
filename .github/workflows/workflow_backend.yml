@@ -30,7 +30,7 @@ jobs:
         run: echo "Skipping tests since none are defined"
   security_scan:
     runs-on: ubuntu-latest
-    needs: test  # Cette étape dépend de l'étape 'test'
+    needs: test 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
