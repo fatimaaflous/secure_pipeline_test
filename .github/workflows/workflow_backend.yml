@@ -5,7 +5,10 @@ on:
   pull_request:
     branches:
       - main
-
+permissions:
+  contents: read  # Permet l'accès au dépôt pour le checkout
+  packages: write # Permet l'accès à GitHub Container Registry (GHCR)
+  id-token: write # Nécessaire pour Cosign
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -57,12 +60,12 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     needs: security_scan # Ne démarre qu'après la validation de 'security_scan'
-    permissions:
-      packages: write
-      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          repository: FatimaAflous/BackendTest
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
