@@ -101,4 +101,4 @@ jobs:
 
       - name: Verify the Docker image signature
         run: |
-          cosign verify --key env://COSIGN_PUBLIC_KEY ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cosign verify --key cosign.pub ghcr.io/${{ github.repository }}:${{ github.sha }}
