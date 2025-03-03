@@ -91,6 +91,8 @@ jobs:
           sudo mv cosign-linux-amd64 /usr/local/bin/cosign
       - name: Load Cosign Private Key
         run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" | tr -d '\r' > cosign.key
+      - name: Load Cosign Public Key
+        run: echo "${{ secrets.COSIGN_PUBLIC_KEY }}" | tr -d '\r' > cosign.pub      
       - name: Authenticate to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin      
       - name: Sign the Docker image with Cosign
