@@ -90,13 +90,12 @@ jobs:
           chmod +x cosign-linux-amd64
           sudo mv cosign-linux-amd64 /usr/local/bin/cosign
       - name: Load Cosign Private Key
-        run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
+        run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" | tr -d '\r' > cosign.key
       - name: Sign the Docker image with Cosign
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
-          cosign sign --yes --key env://COSIGN_PRIVATE_KEY ghcr.io/${{ github.repository }}:${{ github.sha }}
-
+          cosign sign --yes --key cosign.key ghcr.io/${{ github.repository }}:${{ github.sha }}
       - name: Verify the Docker image signature
         run: |
           cosign verify --key env://COSIGN_PUBLIC_KEY ghcr.io/${{ github.repository }}:${{ github.sha }}
