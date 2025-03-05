@@ -30,29 +30,32 @@ jobs:
         run: echo "Skipping tests since none are defined"
 
   security_scan:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-      # Scan Docker image for vulnerabilities with Trivy
-      - name: Scan for vulnerabilities with Trivy
-        uses: aquasecurity/trivy-action@0.28.0  # Action Trivy officielle
-        with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}  # L'image Docker à scanner
-          exit_code: 1        # Code de sortie en cas de vulnérabilité trouvée
-          severity: "CRITICAL,HIGH"  # Vulnérabilités critiques et hautes
+  runs-on: ubuntu-latest
+  needs: test
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      # Install and scan dependencies with Snyk
-      - name: Install Snyk
-        run: npm install -g snyk
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} .
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Authenticate Snyk
-        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+    - name: Scan for vulnerabilities with Trivy
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}  # Référence correcte pour l'image à scanner
+        exit-code: 1  # Code de sortie en cas de vulnérabilité trouvée
+        severity: "CRITICAL,HIGH"  # Vulnérabilités critiques et hautes
 
-      - name: Scan dependencies with Snyk
-        run: snyk test --severity-threshold=high
+    - name: Install Snyk
+      run: npm install -g snyk
+
+    - name: Authenticate Snyk
+      run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+    - name: Scan dependencies with Snyk
+      run: snyk test --severity-threshold=high
 
   build_and_push:
     runs-on: ubuntu-latest
