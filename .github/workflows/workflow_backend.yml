@@ -32,8 +32,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Build Docker image
+        run: |
+           docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }} .
       - name: Scan for vulnerabilities with Trivy
         uses : aquasecurity/trivy-action@0.28.0  # Action Trivy officielle
         with:
