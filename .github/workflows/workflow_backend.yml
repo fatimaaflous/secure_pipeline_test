@@ -28,38 +28,30 @@ jobs:
 
       - name: Run tests (skipped)
         run: echo "Skipping tests since none are defined"
-  build_and_push:
+
+  build:
     runs-on: ubuntu-latest
     needs: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          repository: ${{ github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Docker image
         run: |
           docker build -t ghcr.io/${{ github.repository }}:latest .
           docker tag ghcr.io/${{ github.repository }}:latest ghcr.io/${{ github.repository }}:${{ github.sha }}
 
-      - name: Push Docker image
-        run: |
-          docker push ghcr.io/${{ github.repository }}:latest
-          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
   security_scan:
     runs-on: ubuntu-latest
-    needs: build_and_push
+    needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Scan for vulnerabilities with Trivy
-        uses: aquasecurity/trivy-action@0.28.0 # Action Trivy officielle
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          image: ghcr.io/${{ github.repository }}:latest # Scanner l’image poussée
+          image: ghcr.io/${{ github.repository }}:latest # Scanner l’image construite
           exit_code: 1 # Code de sortie en cas de vulnérabilité trouvée
           severity: "CRITICAL,HIGH" # Vulnérabilités critiques et hautes
 
@@ -72,21 +64,37 @@ jobs:
       - name: Scan dependencies with Snyk
         run: snyk test --severity-threshold=high
 
+  push:
+    runs-on: ubuntu-latest
+    needs: security_scan
+    steps:
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+
   sign_and_verify:
     runs-on: ubuntu-latest
-    needs: build_and_push
+    needs: push
     steps:
       - name: Install Cosign
         run: |
           curl -LO https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
           chmod +x cosign-linux-amd64
           sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+
       - name: Load Cosign Private Key
         run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" | tr -d '\r' > cosign.key
+
       - name: Load Cosign Public Key
         run: echo "${{ secrets.COSIGN_PUBLIC_KEY }}" | tr -d '\r' > cosign.pub
+
       - name: Authenticate to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
       - name: Sign the Docker image with Cosign
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
