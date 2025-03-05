@@ -38,7 +38,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Scan for vulnerabilities with Trivy
-        uses : aquasecurity/trivy-action@v0.29.0  # Action Trivy officielle
+        uses : aquasecurity/trivy-action@0.28.0  # Action Trivy officielle
         with:
           scan: "filesystem"  # Scan le système de fichiers
           exit_code: 1        # Code de sortie en cas de vulnérabilité trouvée
