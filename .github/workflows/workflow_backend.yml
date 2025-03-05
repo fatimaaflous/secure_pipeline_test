@@ -37,8 +37,7 @@ jobs:
       - name: Scan for vulnerabilities with Trivy
         uses : aquasecurity/trivy-action@0.28.0  # Action Trivy officielle
         with:
-          scan: "filesystem"  # Scan le système de fichiers
-          path: "."           # Le chemin à scanner (par exemple, le répertoire courant)
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG_NAME }}  # L'image Docker à scanner
           exit_code: 1        # Code de sortie en cas de vulnérabilité trouvée
           severity: "CRITICAL,HIGH"  # Vulnérabilités critiques et hautes
 
