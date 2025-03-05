@@ -5,10 +5,7 @@ on:
   pull_request:
     branches:
       - main
-permissions:
-  contents: read
-  packages: write
-  id-token: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -41,6 +38,7 @@ jobs:
         uses : aquasecurity/trivy-action@0.28.0  # Action Trivy officielle
         with:
           scan: "filesystem"  # Scan le système de fichiers
+          path: "."           # Le chemin à scanner (par exemple, le répertoire courant)
           exit_code: 1        # Code de sortie en cas de vulnérabilité trouvée
           severity: "CRITICAL,HIGH"  # Vulnérabilités critiques et hautes
 
