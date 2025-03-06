@@ -52,7 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Snyk tests and monitoring
-        uses: snyk/actions/node@latest
+        uses: snyk/actions/node@master
         with:
           command: |
             test --sarif --sarif-file-output=snyk_test_${{ github.sha }}.sarif
