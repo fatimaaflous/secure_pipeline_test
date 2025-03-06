@@ -21,25 +21,25 @@ jobs:
   sign_and_verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Cosign
-        run: |
-          curl -LO https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
-          chmod +x cosign-linux-amd64
-          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
-
-      - name: Load Cosign Private Key
-        run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" | tr -d '\r' > cosign.key
-
-      - name: Load Cosign Public Key
-        run: echo "${{ secrets.COSIGN_PUBLIC_KEY }}" | tr -d '\r' > cosign.pub
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Authenticate to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
       - name: Sign the Docker image with Cosign
-        env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        run: cosign sign --yes --key cosign.key ghcr.io/${{ github.repository }}:${{ github.sha }}
+        uses: sigstore/cosign-action@v1
+        with:
+          cosign-version: 'v1.8.0'  # Choisissez la version souhaitée
+          sign: true
+          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          password: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Verify the Docker image signature
-        run: cosign verify --key cosign.pub ghcr.io/${{ github.repository }}:${{ github.sha }}
+        uses: sigstore/cosign-action@v1
+        with:
+          cosign-version: 'v1.8.0'  # Choisissez la version souhaitée
+          verify: true
+          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          key: ${{ secrets.COSIGN_PUBLIC_KEY }}
