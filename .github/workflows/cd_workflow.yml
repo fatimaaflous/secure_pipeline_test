@@ -1,0 +1,45 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]  # Il dépend du succès du pipeline CI
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  TAG_NAME: 0.1
+  COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+
+jobs:
+  sign_and_verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Cosign
+        run: |
+          curl -LO https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
+          chmod +x cosign-linux-amd64
+          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+
+      - name: Load Cosign Private Key
+        run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" | tr -d '\r' > cosign.key
+
+      - name: Load Cosign Public Key
+        run: echo "${{ secrets.COSIGN_PUBLIC_KEY }}" | tr -d '\r' > cosign.pub
+
+      - name: Authenticate to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Sign the Docker image with Cosign
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: cosign sign --yes --key cosign.key ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      - name: Verify the Docker image signature
+        run: cosign verify --key cosign.pub ghcr.io/${{ github.repository }}:${{ github.sha }}

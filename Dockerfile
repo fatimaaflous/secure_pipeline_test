@@ -29,5 +29,5 @@ COPY --from=builder /app /app
 # Exposer le port de l’application
 EXPOSE 3000
 
-# Lancer l’application
+# Lancer l'application
 CMD ["node", "index.js"]
