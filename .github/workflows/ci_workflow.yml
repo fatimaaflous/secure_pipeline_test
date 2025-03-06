@@ -43,16 +43,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Trivy
-        run: |
-          sudo apt update
-          sudo apt install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_0.59.1_Linux-64bit.tar.gz
-          tar -xvzf trivy_0.59.1_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
-
       - name: Scan code dependencies with Trivy
-        run: trivy fs --exit-code 1 --severity CRITICAL,HIGH .
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          severity: CRITICAL,HIGH
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Snyk
         run: npm install -g snyk
