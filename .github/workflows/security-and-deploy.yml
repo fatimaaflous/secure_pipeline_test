@@ -16,7 +16,7 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v4
         with:
-          name: docker-image
+          name: docker-image.zip
 
       - name: Load Docker image
         run: |
