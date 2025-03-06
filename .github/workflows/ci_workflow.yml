@@ -51,14 +51,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Snyk
-        run: npm install -g snyk
-
-      - name: Authenticate Snyk
-        run: snyk auth ${{ secrets.SNYK_TOKEN }}
-
-      - name: Scan dependencies with Snyk
-        run: snyk test --severity-threshold=high
+      - name: Run Snyk tests and monitoring
+        uses: snyk/actions/node@latest
+        with:
+          command: |
+            test --sarif --sarif-file-output=snyk_test_${{ github.sha }}.sarif
+            code test --sarif --sarif-file-output=snyk_code_test_${{ github.sha }}.sarif
+            monitor
+          severity-threshold: high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   build_and_push:
     runs-on: ubuntu-latest
